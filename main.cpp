@@ -1,523 +1,297 @@
-////////////////////Todo Management System/////////////////////////////
-///////////////////////////Header Files////////////////////////////////
+////////////////////Todo Management System/////////////
+///////////////////////////Header Files////////////////
 #include <iostream>
+#include <string>
+#include <cctype>
+#include <iomanip>
+#include <fstream>
+#include <vector>
+#include <stdio.h>
+#include <windows.h>
 #include <cstddef>
 #include <conio.h>
-#include <fstream>
-#include <ctime>
-#include <cstring>
-#include <windows.h>
-////////////////////////Function Declaration///////////////////////////
-
-void menu();
-void pascode();
-void cpascode();
 
 using namespace std;
 
-//////////////////class One////////////////////////////////////////////
-
-class one
+/////////////////Function Declaration/////////////////
+void cpascode();
+/////////////////////class item///////////////////////
+class Item
 {
-    public:
-    virtual void get()=0;
-    virtual void show()=0;
-    virtual void Day()=0;
-
-};
-///////////////////////class Time//////////////////////////////////////
-class Time {
 public:
-Time(int =0, int =0, int =0 );
-void setTime(int ,int ,int);
-void setHour(int h);
-void setMinute(int m);
-void setSecond(int s);
-int getHour(){return hour;}
-int getMinute(){return minute;}
-int getSecond(){return second;}
-void printUniversal();
-void printStandard();
+	Item();
+	Item(string);
+	~Item();
+
+	string text();
+	void done();
+	bool is_done();
+
+	bool operator==(Item&);
+
 private:
-int hour;     // 0 - 23 (24-hour clock format)
-int minute;   // 0 - 59
-int second;   // 0 - 59
+	string _text;
+	bool _done;
+
+	string str_tolower(string);
+};
+///////////////////////
+Item::Item()
+{
+	_text = "";
+	_done = false;
+}
+
+Item::Item(string item)
+{
+	int startf = item.find("false");
+	int startt = item.find("true");
+	string str;
+
+	if (startf > -1 && startt == -1) // item has false
+	{
+		str = item.substr(0, startf - 1);
+		_done = false;
+	} else if (startt > -1 && startf == -1) { // item has true
+		str = item.substr(0, startt - 1);
+		_done = true;
+	} else if (startf == -1 && startt == -1) { // item is user input (no true or false)
+		str = item;
+		_done = false;
+	}
+
+	_text = str;
+}
+
+Item::~Item()
+{
+	// do nothing
+}
+
+string Item::text()
+{
+	return _text;
+}
+
+void Item::done()
+{
+	_done = true;
+}
+
+bool Item::is_done()
+{
+	return _done;
+}
+
+string Item::str_tolower(string str)
+{
+	string temp = str;
+	for (int i = 0; i < temp.size(); ++i)
+		temp[i] = tolower(temp[i]);
+	return temp;
+}
+
+bool Item::operator==(Item& other)
+{
+	bool text_equal = str_tolower(_text) == str_tolower(other.text());
+	bool done_equal = _done == other.is_done();
+	return text_equal && done_equal;
+}
+/////////////////////class TodoList//////////////////
+class TodoList
+{
+public:
+	TodoList();
+	TodoList(const char*);
+	~TodoList();
+
+	void read();
+	void display();
+	void create();
+	void save();
+	void add();
+	void clear();
+	void check();
+
+	int get_count();
+
+private:
+	const char* filename;
+	vector<Item> list;
 };
 
-void Time::setHour(int h)
+////////////////////////////////////////
+
+TodoList::TodoList()
 {
-	hour   = (0<=h<24) ?h:  0;
-}
-void Time::setMinute(int m)
-{
-	minute   = (0<=m<24) ?m:  0;
-}
-void Time::setSecond(int s)
-{
-	second   = (0<=s<24) ?s:  0;
-}
-void Time::printUniversal(){
-cout << hour << ":" << minute << ":"<< second;
-}
-void Time::printStandard(){
-cout <<( ( hour == 0 || hour == 12 ) ? 12 : hour % 12 )<< ":"  << minute << ":" << second << ( hour < 12 ? " AM" : " PM" );
-}
-//////////////////////class Date///////////////////////////////////////
-
-
-//////////////////class information////////////////////////////////////
-
-class info : public one
-{
-    public:
-    char name[50], tim[50] ,comment[50] ;
-    int  number;
-    int  d;
-    Time *t ;
-    Time t1(2);
-    void get()
-    {
-    	int a , b , c;
-        system("cls");
-        cin.sync();
-        cout<<"\n Enter the work name =";
-        cin.getline(name, 50);
-        cout<<"\n Enter the Date Time =";
-        cout<<"shanbe yekshanbe ...";
-        cin>>d;
-        cout<<"\n Enter number =";
-        cin>>number;
-        cout<<"\n Enter time(HH-MM-SS) : ";
-        cin>>a >> b >> c;
-        t->setHour(a);
-        t->setMinute(b);
-        t->setSecond(c);
-        cout<<"\n Enter comment : ";
-        cin.getline(comment,50);
-    }
-    void show()
-    {
-        cout<<"\nName ="<<name;
-       // cout<<"\nDay ="<<
-
-        cout<<"\nNumber ="<<number;
-        cout<<"\nTime(HH-MM-SS) : "<<t1.printUniversal());
-        cout<<"\nComment : "<<comment;
-    }
-    void Day(int d)
-{
-        switch(d)
-        {
-            case '0': cout<<"shanbeh";    break;
-            case '1': cout<<"yekshanbeh"; break;
-            case '2': cout<<"dooshanbeh"; break;
-            case '3': cout<<"sehshanbeh"; break;
-            case '4': cout<<"charshanbeh";break;
-            case '5': cout<<"pangshanbeh";break;
-            default : cout<<"shanbeh";
-        }
-}
-};
-
-///////////////////////class level1//////////////////////////////////////
-
-class level1 : public info
-{
-
-    public:
-    info a1;
-    void get()
-    {
-        system("cls");
-        ofstream out("level1.txt", ios:: app|ios::binary);
-        a1.get();
-        out.write((char*)&a1 ,sizeof(info));
-        out.close();
-        cout<<"Your Entry Has been saved ";
-        getch();
-        menu();
-    }
-    void show()
-    {
-        ifstream in("level1.txt");
-        if(!EOF)
-        {
-            cout<<"\n\nNo Data In The File ";
-            cout<<"\n\n\t\tPress Any Key To Continue : ";
-            getch();
-            menu();
-
-        }
-        else{
-
-            while(!in.eof())
-            {
-             in.read((char*)&a1, sizeof(a1));
-             a1.show();
-            }
-            in.close();
-            getch();
-            menu();
-        }
-        }
-};
-
-/////////////////////class  level2/////////////////////////////////////
-
-class level2:public info
-{
-
-    public:
-    info a1;
-    void get()
-    {
-        system("cls");
-        ofstream out("level2.txt", ios:: app|ios::binary);
-        a1.get();
-        out.write((char*)&a1 ,sizeof(info));
-        out.close();
-        cout<<"Your Entry Has been saved ";
-        getch();
-        menu();
-    }
-    void show()
-    {
-        ifstream in("level2.txt");
-        if(!EOF)
-        {
-            cout<<"\n\nNo Data In The File ";
-            cout<<"\n\n\t\tPress Any Key To Continue : ";
-            getch();
-            menu();
-
-        }
-        else
-        {
-
-        while(!in.eof())
-        {
-        in.read((char*)&a1, sizeof(a1));
-        a1.show();
-        }
-        in.close();
-        cout<<"Press Enter To Continue =";
-        getch();
-        menu();
-    }}
-
-
-
-
-};
-
-
-////////////////////////class  level3///////////////////////////////////
-
-
-class level3: public info
-{
-    public:
-    info a1;
-    void get()
-    {
-        system("cls");
-        ofstream out("level3.txt", ios::app|ios::binary);
-        a1.get();
-        out.write((char*)&a1 ,sizeof(info));
-        out.close();
-        cout<<"Your Entry Has been saved ";
-        getch();
-        menu();
-    }
-    void show()
-    {
-        ifstream in("level3.txt");
-        if(!EOF)
-        {
-            cout<<"No Data In The File ";
-            cout<<"\nPress Any Key To Continue : ";
-            getch();
-            menu();
-        }
-
-        while(!in.eof())
-        {
-
-         in.read((char*)&a1, sizeof(info));
-
-
-         a1.show();
-        }
-        in.close();
-    }
-
-
-
-
-};
-
-
-class timed:public one
-{
-    public:
-
-    char all[999];
-    char name[50],time[20],number[30];
-
-    void get()
-    {
-        ofstream out("timed.txt",ios::app);
-        {   system("cls");
-            cin.sync();
-            cout<<"\nEnter Name = ";
-            cin.getline(name,50);
-            cout<<"\nEnter Time = ";
-            cin.getline(time,20);
-            cout<<"\nEnter number = ";
-            cin.getline(number,30);
-///oooohire
-
-        }
-        out<<"\nName = "<<name<<"\nTime "<<time<<"\nnumber"<<number;
-        out.close();
-        cout<<"\n\nYour Information has been saved :\n\t\t\tPress any key to continue ";
-        getch();
-        menu();
-    }
-    void show()
-    {
-
-        ifstream in("timed.txt");
-        if(!in)
-        {
-          cout<<"File open error";
-        }
-        while(!(in.eof()))
-        {
-            in.getline(all,999);
-            cout<<all<<endl;
-
-
-        }
-        in.close();
-        cout<<"\n\n\t\t\tPress Any Key To Continue : ";
-        getch();
-        menu();
-    }
-
-
-
-
-
-};
-
-/////////////////////////////class information//////////////////////////
-class information
-{
-    public:
-    void Levelinfo()
-    {
-    system("cls");
-    system("color F3");
-    cout<<"\n==============================================================================\n";
-    cout<<"\n\n\t\t(Three LEVEL Available) \n\n \t\t[Information And Timing Are Given Below]\n)";
-    cout<<"----------------------------------------------------------------------------\n";
-    cout<<"\t\tLevel Available:\n";
-
-
-
-    getch();
-    menu();
-
-
-    }
-
-
-
-
-};
-
-
-void pinfoshow()
-{
-    system("cls");
-    int choice;
-    cout<<"\n\n\n\t\t\Press 1 for level1  \n\n\t\t Press 2 for level2 \n\n\t\t Press 3 for Level level3 ";
-    cout<<"Please Enter Your Choice :";
-    cin>>choice;
-    one *ptr;
-    level1 s3;
-    level2 s4;
-    level3 s5;
-    if(choice==1)
-    {
-    ptr=&s3;
-    ptr->show();
-    }
-    else if(choice==2)
-    {
-        ptr=&s4;
-        ptr->show();
-    }
-    else if(choice==3)
-    {
-        ptr=&s5;
-        ptr->show();
-    }
-    else
-    {
-        cout<<"Sorry Invalid choice : ";
-        getch();
-        menu();
-    }
-
+	filename = nullptr;
 }
 
-
-void call_Level()
+TodoList::TodoList(const char* filename)
 {
-    system("cls");
-    int choice;
-    cout<<"\n\n\n\t\t\Press 1 for level1  \n\n\t\t Press 2 for level2 \n\n\t\t Press 3 for level3 ";
-    cin>>choice;
-
-    one *ptr;
-    level1 s3;
-    level2 s4;
-    level3 s5;
-    if(choice==1)
-    {
-    ptr=&s3;
-    ptr->get();
-
-    }
-    if(choice==2)
-    {
-    ptr=&s4;
-    ptr->get();
-
-
-    }
-    if(choice==3)
-    {
-     ptr=&s5;
-     ptr->get();
-
-    }
-
-else {
-
-    cout<<"Sorry invalid choice :";
-    }
+	this->filename = filename;
 }
 
+TodoList::~TodoList()
+{
+	// do nothing
+}
+
+void TodoList::read()
+{
+	fstream fs(filename, fstream::in);
+	string line;
+
+	list.clear();
+
+	while(getline(fs, line))
+	{
+		if (line == "") continue;
+		Item item(line);
+		list.push_back(item);
+	}
+
+	fs.close();
+}
+
+void TodoList::display()
+{
+	cout << "Your todo list: " << endl << endl;
+
+	const int W = 40;
+	cout << "   " << setw(W) << left << "TASK" << "DONE" << endl;
+	cout << "   " << setw(W) << left << "----" << "----" << endl;
+	for (int i = 0; i < list.size(); ++i)
+	cout << i + 1 << ") " << setw(W) << left << list[i].text() << (list[i].is_done() ? "Done" : "" ) << endl;
+}
+
+void TodoList::create()
+{
+	bool is_finished = false;
+	int count = 1;
+	string task;
+
+	list.clear();
+
+	while(!is_finished)
+	{
+		cout << count << ": ";
+
+		getline(cin, task);
+		if (task == "") is_finished = true;
+
+		Item item(task);
+		list.push_back(item);
+		count++;
+	}
+}
+
+void TodoList::save()
+{
+	fstream fs(filename, fstream::out);
+
+	for (Item item : list)
+	{
+		if (item.text().empty()) continue;
+		fs << item.text() << " " << (item.is_done() ? "true" : "false") << endl;
+	}
+
+	fs.close();
+}
+
+int TodoList::get_count()
+{
+	return list.size();
+}
+
+void TodoList::add()
+{
+	int index = list.size();
+	while (true)
+	{
+		cout << ++index << " : ";
+
+		string task;
+		getline(cin, task);
+		if (task == "") break;
+
+		Item item(task);
+		list.push_back(item);
+	}
+
+	save();
+}
+
+void TodoList::clear()
+{
+	list.clear();
+	remove(filename);
+}
+
+void TodoList::check()
+{
+	cout << "Enter number of task: ";
+
+	string choice;
+	getline(cin, choice);
+
+	if (choice.empty()) return;
+	for (char c : choice) if (isalpha(c)) return;
+
+	int index = stoi(choice) - 1;
+	if (index > list.size()) return;
+	list[index].done();
+
+	save();
+}
+////////////////menu function//////////////
 void menu()
 {
+    TodoList tasks("list.txt");
 
-    system("cls");
-    system("color Fc");
+	while(1)
+	{
+		tasks.read();
 
-    cout<<"\n";
-    cout<<"\n";
+		if (tasks.get_count() > 0)
+		{
+			tasks.display();
+			cout << endl;
 
-    cout<<"\t\t  |   ++++++++++   MAIN MENU   ++++++++++   |  \n";
-    cout<<"\t\t  |        TODOLIST MANAGEMENT SYSTEM       |\n";
-    cout<<"\t\t  |=========================================|  \n";
+			cout << "1)  Add  Item" << endl;
+			cout << "2) Clear Item" << endl;
+			cout << "3) Check Item" << endl;
+			cout << "4) for Checking Password or Create password   :\n\n";
+			cout << "Choice : ";
 
-    cout<<"\n--------------------------------------------------------------------------\n";
-    cout<<"\t\t           Please Select Any Option          \n  ";
+			string choice;
+			getline(cin, choice);
 
-    cout<<"\n\n\t1-\t\tPress 1 For Available work Information\n\n";
-    cout<<"\t2-\t\tPress 2 for work Appointment\n\n";
-    cout<<"\t3-\t\tPress 3 for Saving time information\n\n";
-    cout<<"\t4-\t\tPress 4 for Checking Works Times Menu:\n\n";
-    cout<<"\t5-\t\tPress 5 for Checking time Information Menu:\n\n";
-    cout<<"\t6-\t\tPress 6 for Checking Password or Create password   :\n\n";
-    cout<<"\t7-\t\tPress 7 for Remove item: \n\n";
-    cout<<"\t8-\t\t[   Press 8 for Logout       ]\n";
+			if (choice == "1")
+			{
+				tasks.add();
+			} else if (choice == "2") {
+				tasks.clear();
+			} else if (choice == "3") {
+				tasks.check();
+			} else if (choice == "4") {
+                cpascode();
+			}   else {
+				break;
+			}
 
-    cout<<"\n==========================================================================\n";
-    cout<<"\n\n\t\tPlease Enter Your choice : ";
-    information a1;
-    one *ptr;
-    timed a2;
-    int a;
-    cin>>a;
-    if(a==1)
-    {
-        a1.Levelinfo();
-    }
-    else if(a==2)
-    {
-        call_Level();
-    }
-    else if(a==3)
-    {
-        ptr=&a2;
-        ptr->get();
+		} else {
+			cout << "Created a new list .." << endl;
+			tasks.create();
 
-    }
-    else if(a==4)
-    {
-        pinfoshow();
-    }
-    else if(a==5)
-    {
-        ptr=&a2;
-        ptr->show();
-    }
-    else if(a==6)
-    {
-        cpascode();
-    }
-    else if(a==7)
-    {
-       // Remove_item();//<--
-    }
-    else if(a==8)
-    {
-        pascode();
-    }
-    else
-    {
-        cout<<"Sorry invalid choice : ";
-    }
+			cout << endl;
+			tasks.display();
+
+			tasks.save();
+		}
+	}
 }
-
-void pascode()
-{
-    system("cls");
-    char p1[50],p2[50],p3[50];
-
-
-    system("color Fc");
-
-     ifstream in("password.txt");
-     {
-         cin.sync();
-
-         cout<<"\n\n\n\n\n\n\n\t\t\tEnter the Password: ";
-         cin.getline(p1,50);
-         in.getline(p2,50);
-         if(strcmp(p2,p1)==0)
-
-         {
-             menu();
-         }
-         else
-        {
-
-            cout<<"\n\n\t\t\tIncorrect Password Please Try Again\n";
-            Sleep(999);
-            pascode();
-        }
-     }
-     in.close();
-}
-
-
-
-
+//////////////password functions/////////////
 void cpascode()
 {
     char n[50];
@@ -532,14 +306,49 @@ void cpascode()
     out.close();
     cout<<"\n\n\your Password has been saved : ";
     getch();
+    system("cls");
     menu();
-
 }
-int main()
+
+void pascode()
 {
+    system("cls");
+    char p1[50],p2[50];
 
 
+    system("color Fc");
+
+     ifstream in("password.txt");
+     {
+         cin.sync();
+
+         cout<<"\n\n\n\n\n\n\n\t\t\tEnter the Password: ";
+         cin.getline(p1,50);
+         in.getline(p2,50);
+         if(strcmp(p2,p1)==0)
+
+         {
+             system("cls");
+             menu();
+         }
+         else
+        {
+
+            cout<<"\n\n\t\t\tIncorrect Password Please Try Again\n";
+            Sleep(999);
+            pascode();
+        }
+     }
+     in.close();
+}
+
+
+/////////////////////main////////////////////////
+int main(int argc, char const *argv[])
+{
     pascode();
     system("pause");
-}
 
+
+	return 0;
+}
